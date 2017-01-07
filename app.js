@@ -9,7 +9,7 @@ server.use(bodyParser.json())
 server.use(cors());
 
 // import routes
-require('./routes/status')(server);
+require('./routes/resolve')(server);
 
 // default
 server.get('/', function (req, res) {

@@ -1,6 +1,7 @@
 var request = require('request');
 var urlParser = require('url');
 const dns = require('dns');
+const constants = require('../constants');
 
 /**
  * @name url-resolver.get
@@ -11,19 +12,17 @@ const dns = require('dns');
 var get = function (url, callback) {
     request(
         url,
-        { form: { key: 'value' } },
         function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                console.log(body);
                 callback(true);
             } else {
-                console.log(error);
                 callback(false);
             }
         }
     );
 };
 
+//TODO: complete, it not working yet
 /**
  * @name url-resolver.post
  * @description try to send post http request to specified url
@@ -62,7 +61,39 @@ var ping = function (url, callback) {
     });
 };
 
+/**
+ * @name url-resolver.resolve
+ * @description try to resolve url based on type
+ * @param url
+ * @param resolve type {get: 1, post: 2, ping: 3}
+ * @default @param type is get
+ * @param callback: return true hostname is resolved with ip addresses, else false
+ */
+var resolve = function (url, type, callback) {
+    if (!url || !callback) {
+        return;
+    }
+
+    if (type == constants.resolveType.httpPost) {
+        console.log('post');
+        post(url, function (result) {
+            callback(result);
+        });
+    } else if (type == constants.resolveType.ping) {
+        console.log('ping');
+        ping(url, function (result) {
+            callback(result);
+        });
+    } else {
+        console.log('get');
+        get(url, function (result) {
+            callback(result);
+        });
+    }
+}
+
 module.exports = {
+    resolve: resolve,
     get: get,
     post: post,
     ping: ping
