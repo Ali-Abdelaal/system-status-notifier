@@ -1,7 +1,20 @@
 var request = require('request');
 var urlParser = require('url');
+var pingHandler = require('ping');
 const dns = require('dns');
 const constants = require('../constants');
+
+/**
+ * @description handle http response
+ * @returns true if response status is ok, else return false
+ */
+var handleHttpRequestResponse = function (error, response) {
+    if (!error && response.statusCode == 200) {
+        return true;
+    } else {
+        return false;
+    }
+};
 
 /**
  * @name url-resolver.get
@@ -12,17 +25,13 @@ const constants = require('../constants');
 var get = function (url, callback) {
     request(
         url,
-        function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                callback(true);
-            } else {
-                callback(false);
-            }
+        function (error, response) {
+            var result = handleHttpRequestResponse(error, response);
+            callback(result);
         }
     );
 };
 
-//TODO: complete, it not working yet return 405
 /**
  * @name url-resolver.post
  * @description try to send post http request to specified url
@@ -33,27 +42,21 @@ var post = function (url, callback) {
     request.post({
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
         url: url,
-        //body: ""
-    }, function (error, response/*, body*/) {
-        console.log("res status", response.statusCode)
-        if (!error && response.statusCode == 200) {
-            callback(true);
-        } else {
-            callback(false);
-        }
+    }, function (error, response) {
+        var result = handleHttpRequestResponse(error, response);
+        callback(result);
     });
 };
 
 /**
- * @name url-resolver.ping
- * @description try to resolve hostname form url
+ * @name url-resolver.getAddresses
+ * @description try get addresses from url
  * @param url
- * @param callback: return true hostname is resolved with ip addresses, else false
+ * @param callback: return resolved addresses
  */
-var ping = function (url, callback) {
+var getAddresses = function (url, callback) {
     var hostname = "";
     if (isHostName(url)) {
-        console.log("is a hostname");
         hostname = url;
     } else {
         var parsedUrl = urlParser.parse(url, true, true);
@@ -61,18 +64,28 @@ var ping = function (url, callback) {
     }
 
     dns.lookup(hostname, (err, addresses, family) => {
-        console.log('addresses:', addresses);
-        if (addresses) {
-            callback(true);
-        } else {
-            callback(false);
-        }
+        callback(addresses);
     });
 };
 
+/**
+ * @param hostname
+ * @returns true if is valid format host name
+ */
 var isHostName = function (hostname) {
     hostnameRegex = new RegExp("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$");
     return hostnameRegex.test(hostname);
+};
+
+/**
+ * @param target is ip or hostname
+ * @param callback return boolean result
+ * @description try to ping ip or host name and result it's status
+ */
+var ping = function (target, callback) {
+    pingHandler.sys.probe(target, function (isAlive) {
+        callback(isAlive);
+    });
 };
 
 /**
@@ -81,7 +94,7 @@ var isHostName = function (hostname) {
  * @param url
  * @param resolve type {get: 1, post: 2, ping: 3}
  * @default @param type is get
- * @param callback: return true hostname is resolved with ip addresses, else false
+ * @param callback: return true is is alive, else false
  */
 var resolve = function (url, type, callback) {
     if (!url || !callback) {
@@ -104,10 +117,11 @@ var resolve = function (url, type, callback) {
             callback(result);
         });
     }
-}
+};
 
 module.exports = {
     resolve: resolve,
+    getAddresses: getAddresses,
     get: get,
     post: post,
     ping: ping
