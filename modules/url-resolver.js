@@ -9,7 +9,7 @@ const constants = require('../constants');
  * @returns true if response status is ok, else return false
  */
 var handleHttpRequestResponse = function (error, response) {
-    if (!error && response.statusCode == 200) {
+    if (!error && (response.statusCode >= 200 || response.statusCode < 300)) {
         return true;
     } else {
         return false;
