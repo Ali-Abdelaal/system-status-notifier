@@ -1,6 +1,7 @@
 var request = require('request');
 var urlParser = require('url');
 var pingHandler = require('ping');
+var winston = require('winston');
 const dns = require('dns');
 const constants = require('../constants');
 
@@ -102,17 +103,17 @@ var resolve = function (url, type, callback) {
     }
 
     if (type == constants.resolveType.httpPost) {
-        console.log('post');
+        winston.log('info', 'post %s ', url);
         post(url, function (result) {
             callback(result);
         });
     } else if (type == constants.resolveType.ping) {
-        console.log('ping');
+        winston.log('info', 'ping %s ', url);
         ping(url, function (result) {
             callback(result);
         });
     } else {
-        console.log('get');
+        winston.log('info', 'get %s ', url);
         get(url, function (result) {
             callback(result);
         });
