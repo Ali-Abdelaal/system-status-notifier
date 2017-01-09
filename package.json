@@ -16,5 +16,8 @@
     "ping": "^0.2.1",
     "request": "^2.79.0",
     "winston": "^2.3.0"
+  },
+  "devDependencies": {
+    "jasmine": "^2.5.2"
   }
 }

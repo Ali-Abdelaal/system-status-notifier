@@ -5,12 +5,17 @@ var winston = require('winston');
 const dns = require('dns');
 const constants = require('../constants');
 
+var urlResolver = exports;
 /**
  * @description handle http response
  * @returns true if response status is ok, else return false
  */
-var handleHttpRequestResponse = function (error, response) {
-    if (!error && (response.statusCode >= 200 || response.statusCode < 300)) {
+urlResolver.handleHttpRequestResponse = function (error, response) {
+    if (error) {
+        return false;
+    }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
         return true;
     } else {
         return false;
@@ -23,8 +28,8 @@ var handleHttpRequestResponse = function (error, response) {
  * @param url
  * @param callback: return true if ok response, else return false 
  */
-var get = function (url, callback) {
-    request(
+urlResolver.get = function (url, callback) {
+    request.get(
         url,
         function (error, response) {
             var result = handleHttpRequestResponse(error, response);
@@ -39,7 +44,7 @@ var get = function (url, callback) {
  * @param url
  * @param callback: return true if ok response, else return false 
  */
-var post = function (url, callback) {
+urlResolver.post = function (url, callback) {
     request.post({
         headers: { 'content-type': 'application/x-www-form-urlencoded' },
         url: url,
@@ -55,9 +60,9 @@ var post = function (url, callback) {
  * @param url
  * @param callback: return resolved addresses
  */
-var getAddresses = function (url, callback) {
+urlResolver.getAddresses = function (url, callback) {
     var hostname = "";
-    if (isHostName(url)) {
+    if (urlResolver.isHostName(url)) {
         hostname = url;
     } else {
         var parsedUrl = urlParser.parse(url, true, true);
@@ -73,7 +78,7 @@ var getAddresses = function (url, callback) {
  * @param hostname
  * @returns true if is valid format host name
  */
-var isHostName = function (hostname) {
+urlResolver.isHostName = function (hostname) {
     hostnameRegex = new RegExp("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$");
     return hostnameRegex.test(hostname);
 };
@@ -83,7 +88,7 @@ var isHostName = function (hostname) {
  * @param callback return boolean result
  * @description try to ping ip or host name and result it's status
  */
-var ping = function (target, callback) {
+urlResolver.ping = function (target, callback) {
     pingHandler.sys.probe(target, function (isAlive) {
         callback(isAlive);
     });
@@ -97,33 +102,38 @@ var ping = function (target, callback) {
  * @default @param type is get
  * @param callback: return true is is alive, else false
  */
-var resolve = function (url, type, callback) {
+urlResolver.resolve = function (url, type, callback) {
+    winston.log('info', 'type ', type);
     if (!url || !callback) {
         return;
     }
 
     if (type == constants.resolveType.httpPost) {
         winston.log('info', 'post %s ', url);
-        post(url, function (result) {
+        urlResolver.post(url, function (result) {
             callback(result);
         });
     } else if (type == constants.resolveType.ping) {
         winston.log('info', 'ping %s ', url);
-        ping(url, function (result) {
+        urlResolver.ping(url, function (result) {
             callback(result);
         });
     } else {
         winston.log('info', 'get %s ', url);
-        get(url, function (result) {
+        urlResolver.get(url, function (result) {
             callback(result);
         });
     }
 };
 
+/*
 module.exports = {
     resolve: resolve,
     getAddresses: getAddresses,
     get: get,
     post: post,
-    ping: ping
+    ping: ping,
+    handleHttpRequestResponse: handleHttpRequestResponse,
+    isHostName: isHostName
 }
+*/
