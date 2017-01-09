@@ -1,4 +1,4 @@
-var urlResolver = require('../modules/url-resolver');
+var urlResolver = require('../lib/url-resolver');
 
 module.exports = function (server) {
 

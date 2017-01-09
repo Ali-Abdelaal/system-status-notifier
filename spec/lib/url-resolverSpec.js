@@ -2,7 +2,7 @@ describe('url-resolver module', function () {
 
     var _request = require('request');
     const _dns = require('dns');
-    var _urlResolver = require('../../modules/url-resolver');
+    var _urlResolver = require('../../lib/url-resolver');
     var _pingHandler = require('ping');
     const _constants = require('../../constants');
     var urlResolver,
