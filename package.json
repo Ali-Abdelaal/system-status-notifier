@@ -1,5 +1,5 @@
 {
-  "name": "notification-down-system",
+  "name": "target-resolver",
   "version": "1.0.0",
   "description": "",
   "main": "./lib/url-resolver",
